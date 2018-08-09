@@ -11,7 +11,7 @@ The basic functionality is ready:
 
 Screenshot ( because all us love screenshots ):
 
-![screenshot](./screenshots/screenshot1.gif)
+![screenshot](./screenshots/screenshot_small.gif)
 
 Don't hesitate to contact me for further information :)
 
