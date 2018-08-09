@@ -75,7 +75,7 @@ else
         n.IsExpanded = !n.IsExpanded;
         if (n.IsExpanded && !n.ChildrenLoaded) {
             n.ChildrenLoaded = true;
-            LoadNodes(Id);
+            _ = LoadNodes(Id);
         } else {
             uiNodes = UITreeHelper.ReArrange( uiNodes );
             StateHasChanged();
