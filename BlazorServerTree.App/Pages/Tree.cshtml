@@ -22,7 +22,7 @@ else
         <span class="input-group-text" id="basic-addon1">Selected Item</span>
     </div>
     <input type="text" class="form-control" aria-label="Username" aria-describedby="basic-addon1" 
-           value="@(uiNodes.Where(x=>x.IsSelected).Select(x=>x.Text).FirstOrDefault())" />
+           value="@selectedText" />
     </div>
 
     <ul class="list-group">
@@ -30,11 +30,15 @@ else
         {
             <li id="tree-@node.Id" 
                 class="list-group-item @node.IsSelected_display" 
-                onclick=@(() => TreeSelect( @node.Id ))>
+                onclick="@((e) => TreeSelect(e, @node.Id ))"
+            >
                     @for(int d=0; d<@node.Deep; d++) {
                         <span class="p-2"></span>
                     }
-                    <span class="@node.IsExpanded_display" onclick=@(() => TreeExpand( @node.Id ))></span>
+                    <span class="@node.IsExpanded_display" 
+                          onclick="@(async (e) => await TreeExpand(e, @node.Id ))"
+                    >
+                    </span>
                     @node.Text
             </li>
         }
@@ -43,44 +47,47 @@ else
 
 @functions {
     List<UITreeNode> uiNodes;
+    private string selectedText {get; set;}= "";
 
     protected override async Task OnInitAsync()
     {
         await LoadNodes();
+        fixup();
     }
 
     private async Task LoadNodes(int? ParentId = null)
     {
-        if (uiNodes == null) {
-            uiNodes = new List<UITreeNode>();
-        }
+        //Load tree from 'database'
         TreeNode[] newNodes = await TreeService.GetNodesAsync(ParentId);
+        //Transform 'database' data to 'UI' data
         List<UITreeNode> uiNewNodes = newNodes
                                       .Where(x=>x.ParentId==ParentId)
                                       .Select( x=>new UITreeNode { ParentId=x.ParentId, Id=x.Id, Text=x.Label  } )
                                       .ToList();
-        uiNodes = UITreeHelper.ReArrange( uiNewNodes.Concat( uiNodes ).ToList() );
-        StateHasChanged();
+        uiNodes = (uiNodes == null)? uiNewNodes : uiNewNodes.Concat( uiNodes ).ToList();
     }
 
-    private void TreeSelect(  int Id ) {
+    private void TreeSelect(UIMouseEventArgs e, int Id ) {
         foreach( UITreeNode node in uiNodes) {
             node.IsSelected = (node.Id == Id && !node.IsSelected);
         }
-        StateHasChanged();
+        fixup();
     }
 
-    private void TreeExpand(  int Id ) {
+    private async Task TreeExpand(UIMouseEventArgs e,  int Id ) {
         UITreeNode n = uiNodes.Where(x=>x.Id == Id).First();
         n.IsExpanded = !n.IsExpanded;
         if (n.IsExpanded && !n.ChildrenLoaded) {
             n.ChildrenLoaded = true;
-            _ = LoadNodes(Id);
-        } else {
-            uiNodes = UITreeHelper.ReArrange( uiNodes );
-            StateHasChanged();
+            await LoadNodes(Id);
         }
+        fixup();
+    }
 
+    private void fixup() {
+        uiNodes = UITreeHelper.ReArrange( uiNodes );
+        selectedText = (uiNodes.Where(x=>x.IsSelected).Select(x=>x.Text).FirstOrDefault());
+        StateHasChanged();
     }
 
 }
