@@ -1,0 +1,86 @@
+﻿@using BlazorServerTree.App.Services
+@using BlazorServerTree.App.UIHelpers
+@using System.Linq
+@using System.Collections.Generic
+
+@page "/tree"
+@inject TreeDataService TreeService
+
+<h1>Sample Tree</h1>
+
+<p>Tree</p>
+
+@if (uiNodes == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+
+    <div class="input-group mb-3">
+    <div class="input-group-prepend">
+        <span class="input-group-text" id="basic-addon1">Selected Item</span>
+    </div>
+    <input type="text" class="form-control" aria-label="Username" aria-describedby="basic-addon1" 
+           value="@(uiNodes.Where(x=>x.IsSelected).Select(x=>x.Text).FirstOrDefault())" />
+    </div>
+
+    <ul class="list-group">
+        @foreach (var node in uiNodes.Where(x=>x.IsVisible))
+        {
+            <li id="tree-@node.Id" 
+                class="list-group-item @node.IsSelected_display" 
+                onclick=@(() => TreeSelect( @node.Id ))>
+                    @for(int d=0; d<@node.Deep; d++) {
+                        <span class="p-2"></span>
+                    }
+                    <span class="@node.IsExpanded_display" onclick=@(() => TreeExpand( @node.Id ))></span>
+                    @node.Text
+            </li>
+        }
+    </ul>
+}
+
+@functions {
+    List<UITreeNode> uiNodes;
+
+    protected override async Task OnInitAsync()
+    {
+        await LoadNodes();
+    }
+
+    private async Task LoadNodes(int? ParentId = null)
+    {
+        if (uiNodes == null) {
+            uiNodes = new List<UITreeNode>();
+        }
+        TreeNode[] newNodes = await TreeService.GetNodesAsync(ParentId);
+        List<UITreeNode> uiNewNodes = newNodes
+                                      .Where(x=>x.ParentId==ParentId)
+                                      .Select( x=>new UITreeNode { ParentId=x.ParentId, Id=x.Id, Text=x.Label  } )
+                                      .ToList();
+        uiNodes = UITreeHelper.ReArrange( uiNewNodes.Concat( uiNodes ).ToList() );
+        StateHasChanged();
+    }
+
+    private void TreeSelect(  int Id ) {
+        foreach( UITreeNode node in uiNodes) {
+            node.IsSelected = (node.Id == Id && !node.IsSelected);
+        }
+        StateHasChanged();
+    }
+
+    private void TreeExpand(  int Id ) {
+        UITreeNode n = uiNodes.Where(x=>x.Id == Id).First();
+        n.IsExpanded = !n.IsExpanded;
+        if (n.IsExpanded && !n.ChildrenLoaded) {
+            n.ChildrenLoaded = true;
+            LoadNodes(Id);
+        } else {
+            uiNodes = UITreeHelper.ReArrange( uiNodes );
+            StateHasChanged();
+        }
+
+    }
+
+}
