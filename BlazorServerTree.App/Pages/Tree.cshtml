@@ -26,37 +26,35 @@ else
            value="@selectedText" />
     </div>
 
-    <ul class="list-group">
-        @foreach (var node in uiNodes.Where(x=>x.IsVisible))
-        {
-            <li id="tree-@node.Id" 
-                class="list-group-item @node.IsSelected_display" 
-                onclick="@((e) => TreeSelect(e, @node.Id ))"
-            >
-                    @for(int d=0; d<@node.Deep; d++) {
-                        <span class="p-2"></span>
-                    }
-                    <span class="@node.IsExpanded_display" 
-                          onclick="@(async (e) => await TreeExpand(e, @node.Id ))"
-                    >
-                    </span>
-                    @node.Text
-            </li>
-        }
-    </ul>
+    <UITreeNodeComponent uiNodes=@uiNodes
+                         Select=@OnSelect
+                         LoadNodes=@LoadNodes
+                         >
+    </UITreeNodeComponent>  
+
 }
 
 @functions {
     List<UITreeNode> uiNodes;
-    private string selectedText {get; set;}= "";
+    private string selectedText {get; set;} = "";
+
+    private void OnSelect(UIMouseEventArgs e, int? Id ) {
+        System.Console.WriteLine("Seleccionat " + Id);
+        if (Id != null ){
+            selectedText = (uiNodes.Where(x=>x.Id == Id).Select(x=>x.Text).FirstOrDefault());
+        } else {
+            selectedText = "No selection";
+        }
+        StateHasChanged();
+    }
 
     protected override async Task OnInitAsync()
     {
-        await LoadNodes();
-        fixup();
+        uiNodes = await LoadNodes();
+        uiNodes = UITreeHelper.ReArrange( uiNodes );
     }
 
-    private async Task LoadNodes(int? ParentId = null)
+    private async Task<List<UITreeNode>> LoadNodes(int? ParentId = null)
     {
         //Load tree from 'database'
         TreeNode[] newNodes = await TreeService.GetNodesAsync(ParentId);
@@ -65,30 +63,13 @@ else
                                       .Where(x=>x.ParentId==ParentId)
                                       .Select( x=>new UITreeNode { ParentId=x.ParentId, Id=x.Id, Text=x.Label  } )
                                       .ToList();
-        uiNodes = (uiNodes == null)? uiNewNodes : uiNewNodes.Concat( uiNodes ).ToList();
+        //todo: avoid to dup the list in both sides ( component and here )
+        
+        return uiNewNodes;
     }
 
-    private void TreeSelect(UIMouseEventArgs e, int Id ) {
-        foreach( UITreeNode node in uiNodes) {
-            node.IsSelected = (node.Id == Id && !node.IsSelected);
-        }
-        fixup();
-    }
 
-    private async Task TreeExpand(UIMouseEventArgs e,  int Id ) {
-        UITreeNode n = uiNodes.Where(x=>x.Id == Id).First();
-        n.IsExpanded = !n.IsExpanded;
-        if (n.IsExpanded && !n.ChildrenLoaded) {
-            n.ChildrenLoaded = true;
-            await LoadNodes(Id);
-        }
-        fixup();
-    }
 
-    private void fixup() {
-        uiNodes = UITreeHelper.ReArrange( uiNodes );
-        selectedText = (uiNodes.Where(x=>x.IsSelected).Select(x=>x.Text).FirstOrDefault());
-        StateHasChanged();
-    }
+
 
 }
