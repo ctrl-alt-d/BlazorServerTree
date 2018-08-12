@@ -1,5 +1,6 @@
 @using BlazorServerTree.App.UIHelpers
 @using System.Collections.Generic
+@using System.Linq
 
     <ul class="list-group">
 
@@ -74,6 +75,7 @@
             n.ChildrenLoaded = true;
             List<UITreeNode> uiNewNodes = await LazyLoadNodesAsyncDelegate(Id);
             SourceData.uiNodes = (SourceData.uiNodes == null)? uiNewNodes : uiNewNodes.Concat( SourceData.uiNodes ).ToList();
+            n.hasChildren = uiNewNodes.Any();
         }
         fixup();
         if ( n.IsExpanded && ExpandAsyncDelegate != null ) {

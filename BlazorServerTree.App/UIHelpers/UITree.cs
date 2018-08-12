@@ -35,7 +35,5 @@ namespace BlazorServerTree.App.UIHelpers
                 processNode( Id, orderedNodes, unorderedNodes, deep+1, n.IsVisible && n.IsExpanded );
             }
         }        
-
     }
-
 }
