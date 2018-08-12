@@ -27,10 +27,8 @@ The basic functionality is ready:
 
 @functions {
 
-    //UITreeComponent myUiTree;
     UITree uiTree = new UITree();
-
-
+    
     private async Task<bool> OnExpand(int Id)
     {
         System.Console.WriteLine("Expanded " + Id);
