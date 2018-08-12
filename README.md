@@ -9,7 +9,12 @@ The basic functionality is ready:
 * Unexpand nodes and expand nodes with Lazy load.
 * Select and unselect a node.
 
-Code ( code is my friend )
+
+### Screenshot ( because all us love screenshots ):
+
+![screenshot](./screenshots/screenshot_smallv2.gif)
+
+### Show me the code
 
 ```
     <UITreeComponent SourceData=@uiTree
@@ -19,11 +24,22 @@ Code ( code is my friend )
                      ExpandAsyncDelegate=@OnExpand
                      TriggerActionAsyncDelegate=@OnAction>
     </UITreeComponent>  
+
+    @functions {
+
+        //UITreeComponent myUiTree;
+        UITree uiTree = new UITree();
+        private UITreeNode selectedNode {get; set;} = new UITreeNode();
+        private string someLogText;
+
+        private async Task<bool> OnExpand(int Id)
+        {
+            System.Console.WriteLine("Expanded " + Id);
+            return await Task.FromResult(true);
+        }
+
 ```
 
-Screenshot ( because all us love screenshots ):
-
-![screenshot](./screenshots/screenshot_smallv2.gif)
 
 Don't hesitate to contact me for further information :)
 
