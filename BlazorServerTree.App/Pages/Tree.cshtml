@@ -10,7 +10,7 @@
 
 <p>Tree</p>
 
-@if (uiNodes == null)
+@if (uiTree.uiNodes == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -26,32 +26,45 @@ else
            value="@selectedText" />
     </div>
 
-    <UITreeNodeComponent uiNodes=@uiNodes
-                         Select=@OnSelect
-                         LoadNodes=@LoadNodes
-                         >
-    </UITreeNodeComponent>  
+    <UITreeComponent SourceData=@uiTree
+                     SelectChangeDelegate=@OnSelectionChanged
+                     LazyLoadNodesAsyncDelegate=@LoadNodes
+                     UnExpandAsyncDelegate=@OnUnExpand
+                     >
+    </UITreeComponent>  
 
 }
 
 @functions {
-    List<UITreeNode> uiNodes;
+    UITree uiTree = new UITree();
     private string selectedText {get; set;} = "";
 
-    private void OnSelect(UIMouseEventArgs e, int? Id ) {
-        System.Console.WriteLine("Seleccionat " + Id);
+    private async Task<bool> OnExpand(int Id)
+    {
+         System.Console.WriteLine("Expanded " + Id);
+         return await Task.FromResult(true);
+    }
+
+    private async Task<bool> OnUnExpand(int Id)
+    {
+        System.Console.WriteLine("Un Expanded " + Id) ;
+         return await Task.FromResult(true);
+    }
+
+    private void OnSelectionChanged(UIMouseEventArgs e, int? Id ) {
         if (Id != null ){
-            selectedText = (uiNodes.Where(x=>x.Id == Id).Select(x=>x.Text).FirstOrDefault());
+            selectedText = (uiTree.uiNodes.Where(x=>x.Id == Id).Select(x=>x.Text).FirstOrDefault());
         } else {
             selectedText = "No selection";
         }
+        System.Console.WriteLine("Selected " + Id + " " + selectedText + " Total nodes " + uiTree.uiNodes.Count()) ;
         StateHasChanged();
     }
 
     protected override async Task OnInitAsync()
     {
-        uiNodes = await LoadNodes();
-        uiNodes = UITreeHelper.ReArrange( uiNodes );
+        uiTree.uiNodes = await LoadNodes();
+        uiTree.ReArrange( );
     }
 
     private async Task<List<UITreeNode>> LoadNodes(int? ParentId = null)
@@ -59,17 +72,19 @@ else
         //Load tree from 'database'
         TreeNode[] newNodes = await TreeService.GetNodesAsync(ParentId);
         //Transform 'database' data to 'UI' data
+        List<UITreeNodeAction> RandomActions = new List<UITreeNodeAction>() {
+                  new UITreeNodeAction { Name = "Refresh" },
+                  new UITreeNodeAction { Name = "Edit", IsEsabled = false }
+            };
         List<UITreeNode> uiNewNodes = newNodes
                                       .Where(x=>x.ParentId==ParentId)
-                                      .Select( x=>new UITreeNode { ParentId=x.ParentId, Id=x.Id, Text=x.Label  } )
+                                      .Select( x=>new UITreeNode { ParentId=x.ParentId, 
+                                                                   Id=x.Id, Text=x.Label,
+                                                                   Actions = RandomActions  } )
                                       .ToList();
         //todo: avoid to dup the list in both sides ( component and here )
-        
+
         return uiNewNodes;
     }
-
-
-
-
 
 }

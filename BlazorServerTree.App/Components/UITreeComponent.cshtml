@@ -3,12 +3,12 @@
 
     <ul class="list-group">
 
-        @foreach (var node in uiNodes.Where(x=>x.IsVisible))
+        @foreach (var node in SourceData.uiNodes.Where(x=>x.IsVisible))
         {
 
             <li id="tree-@node.Id" 
                 class="list-group-item @node.IsSelected_display" 
-                onclick="@((e) => TreeSelect(e, @node.Id ))"
+                
             >
                     @for(int d=0; d<@node.Deep; d++) {
                         <span class="p-2"></span>
@@ -17,7 +17,11 @@
                           onclick="@(async (e) => await TreeExpand(e, @node.Id ))"
                     >
                     </span>
-                    @node.Text
+
+                    <span onclick="@((e) => TreeSelect(e, @node.Id ))">@node.Text</span>
+
+                    <UITreeActionsComponent uiNode=@node />
+
             </li>
         }
     </ul>
@@ -29,13 +33,19 @@
 
 
     [Parameter]
-    public List<UITreeNode> uiNodes { get; set; }
+    public UITree SourceData { get; set; }
 
     [Parameter]
-    public Action<UIMouseEventArgs,int?> Select { get; protected set; }    
+    public Action<UIMouseEventArgs,int?> SelectChangeDelegate { get; protected set; } = null;   
 
     [Parameter]
-    public Func<int?, Task<List<UITreeNode>>> LoadNodes { get; protected set; }    
+    public Func<int?, Task<List<UITreeNode>>> LazyLoadNodesAsyncDelegate { get; protected set; }    
+
+    [Parameter]
+    public Func<int, Task<bool>> ExpandAsyncDelegate { get; protected set; } = null;
+
+    [Parameter]
+    public Func<int, Task<bool>> UnExpandAsyncDelegate { get; protected set; } = null;   
 
     [Parameter]
     public RenderFragment ChildContent { get; set; }
@@ -45,29 +55,37 @@
     protected void TreeSelect(UIMouseEventArgs e,  int Id )
     {
         int? selectedId=null;
-        foreach( UITreeNode node in uiNodes) {
+        foreach( UITreeNode node in SourceData.uiNodes) {
             node.IsSelected = (node.Id == Id && !node.IsSelected);
             if (node.IsSelected) {
                 selectedId = node.Id;
             }
         }
         fixup();
-        Select(e, selectedId);
+        if ( SelectChangeDelegate != null ) {
+            SelectChangeDelegate(e, selectedId); 
+        }
     }
 
     private async Task TreeExpand(UIMouseEventArgs e,  int Id ) {
-        UITreeNode n = uiNodes.Where(x=>x.Id == Id).First();
+        UITreeNode n = SourceData.uiNodes.Where(x=>x.Id == Id).First();
         n.IsExpanded = !n.IsExpanded;
         if (n.IsExpanded && !n.ChildrenLoaded) {
             n.ChildrenLoaded = true;
-            List<UITreeNode> uiNewNodes = await LoadNodes(Id);
-            uiNodes = (uiNodes == null)? uiNewNodes : uiNewNodes.Concat( uiNodes ).ToList();
+            List<UITreeNode> uiNewNodes = await LazyLoadNodesAsyncDelegate(Id);
+            SourceData.uiNodes = (SourceData.uiNodes == null)? uiNewNodes : uiNewNodes.Concat( SourceData.uiNodes ).ToList();
         }
-        fixup();        
+        fixup();
+        if ( n.IsExpanded && ExpandAsyncDelegate != null ) {
+            await ExpandAsyncDelegate(n.Id);
+        }        
+        if ( !n.IsExpanded && UnExpandAsyncDelegate != null ) {
+            await UnExpandAsyncDelegate(n.Id);
+        }        
     }
 
     private void fixup() {
-        uiNodes = UITreeHelper.ReArrange( uiNodes );
+        SourceData.ReArrange( );
         StateHasChanged();
     }
 

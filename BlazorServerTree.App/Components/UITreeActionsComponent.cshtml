@@ -1,0 +1,51 @@
+@using BlazorServerTree.App.UIHelpers
+@using System.Collections.Generic
+
+@if ( @uiNode.Actions.Count() > 0 ) {
+    <div class="btn-group dropleft float-right">
+        <button type="button" 
+                class="btn btn-danger dropdown-toggle" 
+                data-toggle="dropdown" 
+                aria-haspopup="true" 
+                aria-expanded="false"
+                onclick=@ToggleActionsMenu>
+            Action
+        </button>
+        <div class="dropdown-menu @CollapsedActionsMenu" 
+            x-placement="right-start"
+            aria-labelledby="dropdownMenuButton" 
+            >
+
+            @foreach(UITreeNodeAction action in @uiNode.Actions ) {
+                <a class="dropdown-item" href="#">
+                    <span class="@action.OpenIconic">@action.Name</span>
+                </a>
+            }
+        </div>
+    </div>
+}
+
+@functions {
+
+#pragma warning disable BL9993, CS4014 // Component parameter is marked public
+
+    [Parameter]
+    public UITreeNode uiNode { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    bool isCollapsedActionsMenu = true;
+    string CollapsedActionsMenu = "none;";
+
+    void ToggleActionsMenu()
+    {
+        isCollapsedActionsMenu = !isCollapsedActionsMenu;
+        CollapsedActionsMenu = (isCollapsedActionsMenu)?"":"show";
+        StateHasChanged();
+    }
+
+
+#pragma warning restore BL9993, CS4014 // Component parameter is marked public
+
+}
