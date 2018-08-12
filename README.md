@@ -9,6 +9,18 @@ The basic functionality is ready:
 * Unexpand nodes and expand nodes with Lazy load.
 * Select and unselect a node.
 
+Code ( code is my friend )
+
+```
+    <UITreeComponent SourceData=@uiTree
+                     SelectChangeDelegate=@OnSelectionChanged
+                     LazyLoadNodesAsyncDelegate=@LoadNodes
+                     CollapseAsyncDelegate=@OnCollapse
+                     ExpandAsyncDelegate=@OnExpand
+                     TriggerActionAsyncDelegate=@OnAction>
+    </UITreeComponent>  
+```
+
 Screenshot ( because all us love screenshots ):
 
 ![screenshot](./screenshots/screenshot_smallv2.gif)
