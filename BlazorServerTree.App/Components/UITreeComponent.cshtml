@@ -8,9 +8,7 @@
         {
 
             <li id="tree-@node.Id" 
-                class="list-group-item @node.IsSelected_display" 
-                
-            >
+                class="list-group-item @node.IsSelected_display" >
                     @for(int d=0; d<@node.Deep; d++) {
                         <span class="p-2"></span>
                     }
@@ -21,7 +19,7 @@
 
                     <span onclick="@((e) => TreeSelect(e, @node.Id ))">@node.Text</span>
 
-                    <UITreeActionsComponent uiNode=@node />
+                    <UITreeActionsComponent uiNode=@node TriggerActionAsyncDelegate=@TriggerActionAsyncDelegate />
 
             </li>
         }
@@ -32,12 +30,11 @@
 
 #pragma warning disable BL9993, CS4014 // Component parameter is marked public
 
-
     [Parameter]
     public UITree SourceData { get; set; }
 
     [Parameter]
-    public Action<UIMouseEventArgs,int?> SelectChangeDelegate { get; protected set; } = null;   
+    public Action<UIMouseEventArgs,UITreeNode> SelectChangeDelegate { get; protected set; } = null;   
 
     [Parameter]
     public Func<int?, Task<List<UITreeNode>>> LazyLoadNodesAsyncDelegate { get; protected set; }    
@@ -46,7 +43,11 @@
     public Func<int, Task<bool>> ExpandAsyncDelegate { get; protected set; } = null;
 
     [Parameter]
-    public Func<int, Task<bool>> UnExpandAsyncDelegate { get; protected set; } = null;   
+    public Func<int, Task<bool>> CollapseAsyncDelegate { get; protected set; } = null;   
+
+    [Parameter]
+    public Func<int, string, Task<bool>> TriggerActionAsyncDelegate { get; protected set; } = null;   
+        
 
     [Parameter]
     public RenderFragment ChildContent { get; set; }
@@ -55,16 +56,16 @@
 
     protected void TreeSelect(UIMouseEventArgs e,  int Id )
     {
-        int? selectedId=null;
+        UITreeNode selectedNode=null;
         foreach( UITreeNode node in SourceData.uiNodes) {
             node.IsSelected = (node.Id == Id && !node.IsSelected);
             if (node.IsSelected) {
-                selectedId = node.Id;
+                selectedNode = node;
             }
         }
         fixup();
         if ( SelectChangeDelegate != null ) {
-            SelectChangeDelegate(e, selectedId); 
+            SelectChangeDelegate(e, selectedNode ); 
         }
     }
 
@@ -81,8 +82,8 @@
         if ( n.IsExpanded && ExpandAsyncDelegate != null ) {
             await ExpandAsyncDelegate(n.Id);
         }        
-        if ( !n.IsExpanded && UnExpandAsyncDelegate != null ) {
-            await UnExpandAsyncDelegate(n.Id);
+        if ( !n.IsExpanded && CollapseAsyncDelegate != null ) {
+            await CollapseAsyncDelegate(n.Id);
         }        
     }
 
