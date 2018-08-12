@@ -25,18 +25,17 @@ The basic functionality is ready:
                      TriggerActionAsyncDelegate=@OnAction>
     </UITreeComponent>  
 
-    @functions {
+@functions {
 
-        //UITreeComponent myUiTree;
-        UITree uiTree = new UITree();
-        private UITreeNode selectedNode {get; set;} = new UITreeNode();
-        private string someLogText;
+    //UITreeComponent myUiTree;
+    UITree uiTree = new UITree();
 
-        private async Task<bool> OnExpand(int Id)
-        {
-            System.Console.WriteLine("Expanded " + Id);
-            return await Task.FromResult(true);
-        }
+
+    private async Task<bool> OnExpand(int Id)
+    {
+        System.Console.WriteLine("Expanded " + Id);
+        return await Task.FromResult(true);
+    }
 
 ```
 
