@@ -37,6 +37,14 @@ The basic functionality is ready:
 
 ```
 
+### Can I use `UITreeComponent` on my project?
+
+Use it as your risk. Steps:
+
+* Download the project.
+* Add a reference to it from your own project.
+* Add the following line in your `_ViewImports.cshtml`:  `@addTagHelper *, BlazorTreeControl` 
+* Please, PR your improvements and Issue for comments.
 
 Don't hesitate to contact me for further information :)
 
