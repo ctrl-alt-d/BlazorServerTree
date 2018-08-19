@@ -1,0 +1,97 @@
+@using System.Collections.Generic
+@using System.Linq
+
+    <ul class="list-group">
+
+        @foreach (var node in SourceData.uiNodes.Where(x=>x.IsVisible))
+        {
+
+            <li id="tree-@node.Id" 
+                class="list-group-item @node.IsSelected_display" >
+                    @for(int d=0; d<@node.Deep; d++) {
+                        <span class="p-2"></span>
+                    }
+                    <span class="@node.IsExpanded_display" 
+                          onclick="@(async (e) => await TreeExpand(e, @node.Id ))"
+                    >
+                    </span>
+
+                    <span onclick="@((e) => TreeSelect(e, @node.Id ))">@node.Text</span>
+
+                    <UITreeActionsComponent uiNode=@node TriggerActionAsyncDelegate=@TriggerActionAsyncDelegate />
+
+            </li>
+        }
+    </ul>
+
+
+@functions {
+
+#pragma warning disable BL9993, CS4014 // Component parameter is marked public
+
+    [Parameter]
+    public UITree SourceData { get; set; }
+
+    [Parameter]
+    public Action<UIMouseEventArgs,UITreeNode> SelectChangeDelegate { get; protected set; } = null;   
+
+    [Parameter]
+    public Func<int?, Task<List<UITreeNode>>> LazyLoadNodesAsyncDelegate { get; protected set; }    
+
+    [Parameter]
+    public Func<int, Task<bool>> ExpandAsyncDelegate { get; protected set; } = null;
+
+    [Parameter]
+    public Func<int, Task<bool>> CollapseAsyncDelegate { get; protected set; } = null;   
+
+    [Parameter]
+    public Func<int, string, Task<bool>> TriggerActionAsyncDelegate { get; protected set; } = null;   
+        
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    // --------------------------- //
+
+    protected void TreeSelect(UIMouseEventArgs e,  int Id )
+    {
+        UITreeNode selectedNode=null;
+        foreach( UITreeNode node in SourceData.uiNodes) {
+            node.IsSelected = (node.Id == Id && !node.IsSelected);
+            if (node.IsSelected) {
+                selectedNode = node;
+            }
+        }
+        fixup();
+        if ( SelectChangeDelegate != null ) {
+            SelectChangeDelegate(e, selectedNode ); 
+        }
+    }
+
+    private async Task TreeExpand(UIMouseEventArgs e,  int Id ) {
+        UITreeNode n = SourceData.uiNodes.Where(x=>x.Id == Id).First();
+        n.IsExpanded = !n.IsExpanded;
+        if (n.IsExpanded && !n.ChildrenLoaded) {
+            n.ChildrenLoaded = true;
+            List<UITreeNode> uiNewNodes = await LazyLoadNodesAsyncDelegate(Id);
+            SourceData.uiNodes = (SourceData.uiNodes == null)? uiNewNodes : uiNewNodes.Concat( SourceData.uiNodes ).ToList();
+            n.hasChildren = uiNewNodes.Any();
+        }
+        fixup();
+        if ( n.IsExpanded && ExpandAsyncDelegate != null ) {
+            await ExpandAsyncDelegate(n.Id);
+        }        
+        if ( !n.IsExpanded && CollapseAsyncDelegate != null ) {
+            await CollapseAsyncDelegate(n.Id);
+        }        
+    }
+
+    private void fixup() {
+        SourceData.ReArrange( );
+        StateHasChanged();
+    }
+
+#pragma warning restore BL9993, CS4014 // Component parameter is marked public
+
+
+}

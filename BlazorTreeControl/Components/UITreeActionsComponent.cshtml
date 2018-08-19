@@ -1,0 +1,59 @@
+@using System.Collections.Generic
+
+@if ( @uiNode.Actions.Count() > 0 ) {
+    <div class="btn-group float-right">
+        <button type="button" 
+                class="btn btn-@(( @uiNode.IsSelected)?"warning":"primary") dropdown-toggle" 
+                data-toggle="dropdown" 
+                aria-haspopup="true" 
+                aria-expanded="false"
+                onclick=@ToggleActionsMenu>
+            Action
+        </button>
+        <div class="dropdown-menu @CollapsedActionsMenu dropdown-menu-right" 
+            aria-labelledby="dropdownMenuButton">
+
+            @foreach(UITreeNodeAction action in @uiNode.Actions ) {
+                <button class="dropdown-item" type="button" onclick="@((e) => TriggerAction(e, @uiNode.Id, @action.Name ))">
+                    <span class="@action.OpenIconic"></span> @action.Name
+                </button>
+            }
+        </div>
+    </div>
+}
+
+@functions {
+
+#pragma warning disable BL9993, CS4014 // Component parameter is marked public
+
+    [Parameter]
+    public UITreeNode uiNode { get; set; }
+
+    [Parameter]
+    public Func<int, string, Task<bool>> TriggerActionAsyncDelegate { get; protected set; } = null;   
+
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    bool isCollapsedActionsMenu = true;
+    string CollapsedActionsMenu = "none;";
+
+    void ToggleActionsMenu()
+    {
+        isCollapsedActionsMenu = !isCollapsedActionsMenu;
+        CollapsedActionsMenu = (isCollapsedActionsMenu)?"":"show";
+        StateHasChanged();
+    }
+
+    private async Task TriggerAction(UIMouseEventArgs e,  int Id, string Name ) {
+        if (TriggerActionAsyncDelegate != null ) {
+           await TriggerActionAsyncDelegate(Id, Name);
+        }
+    }
+
+
+
+#pragma warning restore BL9993, CS4014 // Component parameter is marked public
+
+}
