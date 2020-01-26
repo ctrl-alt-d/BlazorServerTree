@@ -7,14 +7,14 @@
                 data-toggle="dropdown" 
                 aria-haspopup="true" 
                 aria-expanded="false"
-                onclick=@ToggleActionsMenu>
+                @onclick=@ToggleActionsMenu>
             Action
         </button>
         <div class="dropdown-menu @CollapsedActionsMenu dropdown-menu-right" 
             aria-labelledby="dropdownMenuButton">
 
             @foreach(UITreeNodeAction action in @uiNode.Actions ) {
-                <button class="dropdown-item" type="button" onclick="@((e) => TriggerAction(e, @uiNode.Id, @action.Name ))">
+                <button class="dropdown-item" type="button" @onclick="@((e) => TriggerAction(e, @uiNode.Id, @action.Name ))">
                     <span class="@action.OpenIconic"></span> @action.Name
                 </button>
             }
@@ -30,7 +30,7 @@
     public UITreeNode uiNode { get; set; }
 
     [Parameter]
-    public Func<int, string, Task<bool>> TriggerActionAsyncDelegate { get; protected set; } = null;   
+    public Func<int, string, Task<bool>> TriggerActionAsyncDelegate { get; set; } = null;   
 
 
     [Parameter]
@@ -46,7 +46,7 @@
         StateHasChanged();
     }
 
-    private async Task TriggerAction(UIMouseEventArgs e,  int Id, string Name ) {
+    private async Task TriggerAction(MouseEventArgs e,  int Id, string Name ) {
         if (TriggerActionAsyncDelegate != null ) {
            await TriggerActionAsyncDelegate(Id, Name);
         }

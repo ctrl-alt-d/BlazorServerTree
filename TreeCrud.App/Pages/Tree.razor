@@ -1,0 +1,106 @@
+﻿@using TreeCrud.App.Services
+@using System.Linq
+@using System.Collections.Generic
+@using BlazorTreeControl
+
+@page "/tree"
+@inject TreeDataService TreeService
+@using BlazorTreeControl.Components
+<h1>Sample Tree</h1>
+
+<p>Tree</p>
+
+@if (uiTree.uiNodes == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="input-group mb-3">
+        <div class="input-group-prepend">
+            <span class="input-group-text" id="basic-addon1">Selected Item</span>
+        </div>
+        <input type="text" class="form-control" 
+            aria-label="SelectedText" aria-describedby="basic-addon1" 
+            @bind=@selectedNode.Text />
+    </div>
+    <div class="input-group mb-3">
+        <div class="input-group-prepend">
+            <span class="input-group-text" id="basic-addon2">Action</span>
+        </div>
+        <input type="text" class="form-control" 
+            aria-label="ActionText" aria-describedby="basic-addon2" 
+            @bind-value="@someLogText" />
+    </div>
+
+    <UITreeComponent SourceData=uiTree
+                     SelectChangeDelegate=OnSelectionChanged
+                     LazyLoadNodesAsyncDelegate=LoadNodes
+                     CollapseAsyncDelegate=OnCollapse
+                     ExpandAsyncDelegate=OnExpand
+                     TriggerActionAsyncDelegate=OnAction>
+    </UITreeComponent>  
+
+}
+
+@code {
+
+    //UITreeComponent myUiTree;
+    UITree uiTree = new UITree();
+    private UITreeNode selectedNode {get; set;} = new UITreeNode();
+    private string someLogText;
+
+    private async Task<bool> OnExpand(int Id)
+    {
+        System.Console.WriteLine("Expanded " + Id);
+        return await Task.FromResult(true);
+    }
+
+    private async Task<bool> OnCollapse(int Id)
+    {
+        System.Console.WriteLine("Un Expanded " + Id) ;
+        return await Task.FromResult(true);
+    }
+
+    private async Task<bool> OnAction(int Id, string actionName)
+    {
+        someLogText = $"Trigger {actionName} on {Id}";
+        StateHasChanged();
+        return await Task.FromResult(true);
+    }
+
+    private void OnSelectionChanged( MouseEventArgs e, UITreeNode node ) {
+        if (node != null ){
+            selectedNode = node;
+        } else {
+            selectedNode = new UITreeNode();
+        }
+        System.Console.WriteLine("Selected " + selectedNode.Text  + " Total nodes " + uiTree.uiNodes.Count()) ;
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        uiTree.uiNodes = await LoadNodes();
+        uiTree.ReArrange( );
+    }
+
+    private async Task<List<UITreeNode>> LoadNodes(int? ParentId = null)
+    {
+        //Load tree from 'database'
+        TreeNode[] newNodes = await TreeService.GetNodesAsync(ParentId);
+        //Transform 'database' data to 'UI' data
+        List<UITreeNodeAction> RandomActions = new List<UITreeNodeAction>() {
+                  new UITreeNodeAction { Name = "Refresh", OpenIconic = "oi oi-reload" },
+                  new UITreeNodeAction { Name = "Edit", OpenIconic = "oi oi-pencil",    IsEsabled = false }
+            };
+        List<UITreeNode> uiNewNodes = newNodes
+                                      .Where(x=>x.ParentId==ParentId)
+                                      .Select( x=>new UITreeNode { ParentId=x.ParentId, 
+                                                                   Id=x.Id, Text=x.Label,
+                                                                   Actions = RandomActions  } )
+                                      .ToList();
+        return uiNewNodes;
+    }
+
+}

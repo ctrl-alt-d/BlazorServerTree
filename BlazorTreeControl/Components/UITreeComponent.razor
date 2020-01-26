@@ -12,11 +12,11 @@
                         <span class="p-2"></span>
                     }
                     <span class="@node.IsExpanded_display" 
-                          onclick="@(async (e) => await TreeExpand(e, @node.Id ))"
+                          @onclick="@(async (e) => await TreeExpand(e, @node.Id ))"
                     >
                     </span>
 
-                    <span onclick="@((e) => TreeSelect(e, @node.Id ))">@node.Text</span>
+                    <span @onclick="@((e) => TreeSelect(e, @node.Id ))">@node.Text</span>
 
                     <UITreeActionsComponent uiNode=@node TriggerActionAsyncDelegate=@TriggerActionAsyncDelegate />
 
@@ -24,8 +24,7 @@
         }
     </ul>
 
-
-@functions {
+@code {
 
 #pragma warning disable BL9993, CS4014 // Component parameter is marked public
 
@@ -33,61 +32,69 @@
     public UITree SourceData { get; set; }
 
     [Parameter]
-    public Action<UIMouseEventArgs,UITreeNode> SelectChangeDelegate { get; protected set; } = null;   
+    public Action<MouseEventArgs,UITreeNode> SelectChangeDelegate { get; set; }
 
     [Parameter]
-    public Func<int?, Task<List<UITreeNode>>> LazyLoadNodesAsyncDelegate { get; protected set; }    
+    public Func<int?, Task<List<UITreeNode>>> LazyLoadNodesAsyncDelegate { get; set; }
 
     [Parameter]
-    public Func<int, Task<bool>> ExpandAsyncDelegate { get; protected set; } = null;
+    public Func<int, Task<bool>> ExpandAsyncDelegate { get; set; } = null;
 
     [Parameter]
-    public Func<int, Task<bool>> CollapseAsyncDelegate { get; protected set; } = null;   
+    public Func<int, Task<bool>> CollapseAsyncDelegate { get; set; } = null;
 
     [Parameter]
-    public Func<int, string, Task<bool>> TriggerActionAsyncDelegate { get; protected set; } = null;   
-        
+    public Func<int, string, Task<bool>> TriggerActionAsyncDelegate { get; set; } = null;
+
 
     [Parameter]
     public RenderFragment ChildContent { get; set; }
 
     // --------------------------- //
 
-    protected void TreeSelect(UIMouseEventArgs e,  int Id )
+    protected void TreeSelect(MouseEventArgs e, int Id)
     {
-        UITreeNode selectedNode=null;
-        foreach( UITreeNode node in SourceData.uiNodes) {
+        UITreeNode selectedNode = null;
+        foreach (UITreeNode node in SourceData.uiNodes)
+        {
             node.IsSelected = (node.Id == Id && !node.IsSelected);
-            if (node.IsSelected) {
+            if (node.IsSelected)
+            {
                 selectedNode = node;
             }
         }
         fixup();
-        if ( SelectChangeDelegate != null ) {
-            SelectChangeDelegate(e, selectedNode ); 
+        if (SelectChangeDelegate != null)
+        {
+            SelectChangeDelegate( e, selectedNode );
         }
     }
 
-    private async Task TreeExpand(UIMouseEventArgs e,  int Id ) {
-        UITreeNode n = SourceData.uiNodes.Where(x=>x.Id == Id).First();
+    private async Task TreeExpand(MouseEventArgs e, int Id)
+    {
+        UITreeNode n = SourceData.uiNodes.Where(x => x.Id == Id).First();
         n.IsExpanded = !n.IsExpanded;
-        if (n.IsExpanded && !n.ChildrenLoaded) {
+        if (n.IsExpanded && !n.ChildrenLoaded)
+        {
             n.ChildrenLoaded = true;
             List<UITreeNode> uiNewNodes = await LazyLoadNodesAsyncDelegate(Id);
-            SourceData.uiNodes = (SourceData.uiNodes == null)? uiNewNodes : uiNewNodes.Concat( SourceData.uiNodes ).ToList();
+            SourceData.uiNodes = (SourceData.uiNodes == null) ? uiNewNodes : uiNewNodes.Concat(SourceData.uiNodes).ToList();
             n.hasChildren = uiNewNodes.Any();
         }
         fixup();
-        if ( n.IsExpanded && ExpandAsyncDelegate != null ) {
+        if (n.IsExpanded && ExpandAsyncDelegate != null)
+        {
             await ExpandAsyncDelegate(n.Id);
-        }        
-        if ( !n.IsExpanded && CollapseAsyncDelegate != null ) {
+        }
+        if (!n.IsExpanded && CollapseAsyncDelegate != null)
+        {
             await CollapseAsyncDelegate(n.Id);
-        }        
+        }
     }
 
-    private void fixup() {
-        SourceData.ReArrange( );
+    private void fixup()
+    {
+        SourceData.ReArrange();
         StateHasChanged();
     }
 
