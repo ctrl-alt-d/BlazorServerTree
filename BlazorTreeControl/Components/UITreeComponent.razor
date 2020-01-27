@@ -3,7 +3,7 @@
 
     <ul class="list-group">
 
-        @foreach (var node in SourceData.uiNodes.Where(x=>x.IsVisible))
+        @foreach (var node in SourceData.UiNodes.Where(x=>x.IsVisible))
         {
 
             <li id="tree-@node.Id" 
@@ -25,8 +25,6 @@
     </ul>
 
 @code {
-
-#pragma warning disable BL9993, CS4014 // Component parameter is marked public
 
     [Parameter]
     public UITree SourceData { get; set; }
@@ -55,7 +53,7 @@
     protected void TreeSelect(MouseEventArgs e, int Id)
     {
         UITreeNode selectedNode = null;
-        foreach (UITreeNode node in SourceData.uiNodes)
+        foreach (UITreeNode node in SourceData.UiNodes)
         {
             node.IsSelected = (node.Id == Id && !node.IsSelected);
             if (node.IsSelected)
@@ -72,14 +70,14 @@
 
     private async Task TreeExpand(MouseEventArgs e, int Id)
     {
-        UITreeNode n = SourceData.uiNodes.Where(x => x.Id == Id).First();
+        UITreeNode n = SourceData.UiNodes.Where(x => x.Id == Id).First();
         n.IsExpanded = !n.IsExpanded;
         if (n.IsExpanded && !n.ChildrenLoaded)
         {
             n.ChildrenLoaded = true;
             List<UITreeNode> uiNewNodes = await LazyLoadNodesAsyncDelegate(Id);
-            SourceData.uiNodes = (SourceData.uiNodes == null) ? uiNewNodes : uiNewNodes.Concat(SourceData.uiNodes).ToList();
-            n.hasChildren = uiNewNodes.Any();
+            SourceData.UiNodes = (SourceData.UiNodes == null) ? uiNewNodes : uiNewNodes.Concat(SourceData.UiNodes).ToList();
+            n.HasChildren = uiNewNodes.Any();
         }
         fixup();
         if (n.IsExpanded && ExpandAsyncDelegate != null)
@@ -97,8 +95,4 @@
         SourceData.ReArrange();
         StateHasChanged();
     }
-
-#pragma warning restore BL9993, CS4014 // Component parameter is marked public
-
-
 }

@@ -24,8 +24,6 @@
 
 @functions {
 
-#pragma warning disable BL9993, CS4014 // Component parameter is marked public
-
     [Parameter]
     public UITreeNode uiNode { get; set; }
 
@@ -51,9 +49,4 @@
            await TriggerActionAsyncDelegate(Id, Name);
         }
     }
-
-
-
-#pragma warning restore BL9993, CS4014 // Component parameter is marked public
-
 }

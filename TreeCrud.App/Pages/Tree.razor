@@ -10,7 +10,7 @@
 
 <p>Tree</p>
 
-@if (uiTree.uiNodes == null)
+@if (uiTree.UiNodes == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -75,13 +75,13 @@ else
         } else {
             selectedNode = new UITreeNode();
         }
-        System.Console.WriteLine("Selected " + selectedNode.Text  + " Total nodes " + uiTree.uiNodes.Count()) ;
+        System.Console.WriteLine("Selected " + selectedNode.Text  + " Total nodes " + uiTree.UiNodes.Count()) ;
         StateHasChanged();
     }
 
     protected override async Task OnInitializedAsync()
     {
-        uiTree.uiNodes = await LoadNodes();
+        uiTree.UiNodes = await LoadNodes();
         uiTree.ReArrange( );
     }
 
