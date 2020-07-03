@@ -48,3 +48,7 @@ Use it as your risk. Steps:
 
 Don't hesitate to contact me for further information :)
 
+### Credits
+* [Dani Herrera](https://github.com/ctrl-alt-d)
+* [Mikael Ferland](https://github.com/MikaelFerland)
+
