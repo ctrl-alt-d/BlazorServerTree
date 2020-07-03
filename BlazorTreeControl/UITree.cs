@@ -6,17 +6,17 @@ namespace BlazorTreeControl
 {
     public class UITree
     {
-        public List<UITreeNode> uiNodes { get; set; } = null;
+        public List<UITreeNode> UiNodes { get; set; } = null;
 
         public void ReArrange(  ) {
-            List<UITreeNode> unorderedNodes = uiNodes.Select(x=>x).ToList();
+            List<UITreeNode> unorderedNodes = UiNodes.Select(x=>x).ToList();
             List<UITreeNode> orderedNodes = new List<UITreeNode>();
             int? currentParentId = null;
-            processNode(currentParentId, orderedNodes, unorderedNodes, 0, true);
-            uiNodes=orderedNodes;
+            ProcessNode(currentParentId, orderedNodes, unorderedNodes, 0, true);
+            UiNodes=orderedNodes;
         }
 
-        private static void processNode(int? currentParentId, 
+        private static void ProcessNode(int? currentParentId, 
                                         List<UITreeNode> orderedNodes, 
                                         List<UITreeNode> unorderedNodes, 
                                         int deep,
@@ -32,7 +32,7 @@ namespace BlazorTreeControl
                 n.Deep = deep;
                 n.IsVisible = visible;
                 orderedNodes.Add( n );
-                processNode( Id, orderedNodes, unorderedNodes, deep+1, n.IsVisible && n.IsExpanded );
+                ProcessNode( Id, orderedNodes, unorderedNodes, deep+1, n.IsVisible && n.IsExpanded );
             }
         }        
     }

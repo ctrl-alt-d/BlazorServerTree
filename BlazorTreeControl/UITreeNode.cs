@@ -18,12 +18,12 @@ namespace BlazorTreeControl
         public bool IsExpanded  { get; set; } = false;
         public bool IsSelected  { get; set; } = false;
         public bool ChildrenLoaded { get; set; } = false;
-        public bool? hasChildren { get; set; } = null;
+        public bool? HasChildren { get; set; } = null;
         public bool IsVisible  { get; set; } = true;
         public List<UITreeNodeAction> Actions { get; set; } = new List<UITreeNodeAction>();
         public string IsExpanded_display {
             get {
-                if (hasChildren.HasValue && !hasChildren.Value) {
+                if (HasChildren.HasValue && !HasChildren.Value) {
                     return "";
                 } else {
                     return (IsExpanded)?"oi oi-caret-bottom":"oi oi-caret-right";

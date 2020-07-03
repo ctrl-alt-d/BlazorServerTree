@@ -1,7 +1,5 @@
 # BlazorServerTree
 
->THIS PROJECT IS DEPRECATED. I KEEP IT HERE ONLY TO UPGRADE TO DotNet 3.0.0 SOME DAY.
-
 A simple Server-Side Blazor sample app to deal with hierarchical data.
 
 The project has a fake data layer service that allow running it without database backend configuration.
@@ -49,4 +47,8 @@ Use it as your risk. Steps:
 * Please, PR your improvements and Issue for comments.
 
 Don't hesitate to contact me for further information :)
+
+### Credits
+* [Dani Herrera](https://github.com/ctrl-alt-d)
+* [Mikael Ferland](https://github.com/MikaelFerland)
 

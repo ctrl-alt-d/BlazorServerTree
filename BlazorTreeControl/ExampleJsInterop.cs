@@ -5,10 +5,10 @@ namespace BlazorTreeControl
 {
     public class ExampleJsInterop
     {
-        public static Task<string> Prompt(string message)
+        public static ValueTask<string> Prompt(IJSRuntime jsRuntime, string message)
         {
             // Implemented in exampleJsInterop.js
-            return JSRuntime.Current.InvokeAsync<string>(
+            return jsRuntime.InvokeAsync<string>(
                 "exampleJsFunctions.showPrompt",
                 message);
         }
